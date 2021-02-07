@@ -37,7 +37,7 @@ Provide the location of the generated certificates, and it's corresponding beans
 docker run --name docker-rabbit -p 5671:5671 -p 5672:5672 -p 5673:5673 -p 15671:15671 -p 15672:15672  -v /path/to/cert:/cert:Z -e RABBITMQ_SSL_CACERTFILE=/cert/ca.pem -e RABBITMQ_SSL_CERTFILE=/cert/server.pem -e RABBITMQ_SSL_KEYFILE=/cert/serverKey.pem -e RABBITMQ_SSL_VERIFY=verify_peer -e RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT=true -e RABBITMQ_MANAGEMENT_SSL_CACERTFILE=/cert/ca.pem -e RABBITMQ_MANAGEMENT_SSL_CERTFILE=/cert/server.pem -e RABBITMQ_MANAGEMENT_SSL_KEYFILE=/cert/serverKey.pem -e RABBITMQ_MANAGEMENT_SSL_VERIFY=verify_peer -e RABBITMQ_MANAGEMENT_SSL_FAIL_IF_NO_PEER_CERT=true rabbitmq:3-management 
 ```
 
-##### Help and contributions
+#### Help & Feedback
 If you hit any problem or have some feedback let me know at,
 1. [LinkedIn Profile](https://www.linkedin.com/in/shaam-sundar-1405/)
 2. [Gmail Account](shaamsundar16@gmail.com)
