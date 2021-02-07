@@ -28,11 +28,6 @@
 **/target/
 **/lib/
 
-**/src/test/**/output/
-**/src/test/**/resources/output/
-**/output
-/Catridges/**/java
-/sample-impl/**/volante/**/java
 **/logs/
 **/\.camel/
 
