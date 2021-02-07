@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+	   xmlns:osgi="http://www.springframework.org/schema/osgi" xmlns:cxf="http://camel.apache.org/schema/cxf"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd  http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd       http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf-2.8.3.xsd">
+
+
+	<bean id="sslContextInst" name="sslContextInst" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetClass" value="javax.net.ssl.SSLContext"/>
+		<property name="targetMethod" value="getInstance"/>
+		<property name="arguments" value="TLSv1.2"/>
+	</bean>
+	<bean id="PassString" name="PassString" class="java.lang.String" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<constructor-arg name="original" value="password"/>
+	</bean>
+	<bean id="charPassword" name="charPassword" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" depends-on="PassString" autowire-candidate="default">
+		<property name="targetObject" ref="PassString"/>
+		<property name="targetMethod" value="toCharArray"/>
+	</bean>
+	<bean id="readP12" name="readP12" class="java.io.FileInputStream" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<constructor-arg name="name" value="/path/to/client.p12"/>
+	</bean>
+	<bean id="keyStoreInstance" name="keyStoreInstance" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetClass" value="java.security.KeyStore"/>
+		<property name="targetMethod" value="getInstance"/>
+		<property name="arguments" value="PKCS12"/>
+	</bean>
+	<bean id="keyStoreLoad" name="keyStoreLoad" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetObject" ref="keyStoreInstance"/>
+		<property name="targetMethod" value="load"/>
+		<property name = "arguments">
+			<list>
+				<ref bean = "readP12"/>
+				<ref bean = "charPassword"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="keyManagerInstance" name="keyManagerInstance" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetClass" value="javax.net.ssl.KeyManagerFactory"/>
+		<property name="targetMethod" value="getInstance"/>
+		<property name="arguments" value="SunX509"/>
+	</bean>
+
+	<bean id="keyManagerInit" name="keyManagerInit" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetObject" ref="keyManagerInstance"/>
+		<property name="targetMethod" value="init"/>
+		<property name = "arguments">
+			<list>
+				<ref bean = "keyStoreInstance"/>
+				<ref bean = "charPassword"/>
+			</list>
+		</property>
+	</bean>
+	<bean id="keyManagerInvoke" name="keyManagerInvoke" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetObject" ref="keyManagerInstance"/>
+		<property name="targetMethod" value="getKeyManagers"/>
+	</bean>
+	<bean id="readTrustJKS" name="readTrustJKS" class="java.io.FileInputStream" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<constructor-arg name="name" value="/path/to/server.truststore.jks"/>
+	</bean>
+	<bean id="trustStoreInstance" name="trustStoreInstance" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetClass" value="java.security.KeyStore"/>
+		<property name="targetMethod" value="getInstance"/>
+		<property name="arguments" value="JKS"/>
+	</bean>
+	<bean id="trustStoreLoad" name="trustStoreLoad" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetObject" ref="trustStoreInstance"/>
+		<property name="targetMethod" value="load"/>
+		<property name = "arguments">
+			<list>
+				<ref bean = "readTrustJKS"/>
+				<ref bean = "charPassword"/>
+			</list>
+		</property>
+	</bean>
+	<bean id="trustManagerAlgorithm" name="trustManagerAlgorithm" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetClass" value="javax.net.ssl.TrustManagerFactory"/>
+		<property name="targetMethod" value="getDefaultAlgorithm"/>
+	</bean>
+	<bean id="trustManagerInstance" name="trustManagerInstance" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetClass" value="javax.net.ssl.TrustManagerFactory"/>
+		<property name="targetMethod" value="getInstance"/>
+		<property name="arguments" value="SunX509"/>
+	</bean>
+
+	<bean id="trustManagerInit" name="trustManagerInit" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetObject" ref="trustManagerInstance"/>
+		<property name="targetMethod" value="init"/>
+		<property name = "arguments">
+			<list>
+				<ref bean = "trustStoreInstance"/>
+			</list>
+		</property>
+	</bean>
+	<bean id="trustManagerInvoke" name="trustManagerInvoke" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetObject" ref="trustManagerInstance"/>
+		<property name="targetMethod" value="getTrustManagers"/>
+	</bean>
+	<bean id="sslParams" name="sslParams" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetObject" ref="sslContextInst"/>
+		<property name="targetMethod" value="init"/>
+		<property name = "arguments">
+			<list>
+				<ref bean = "keyManagerInvoke"/>
+				<ref bean = "trustManagerInvoke"/>
+				<null />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="amqp" name="amqp" class="org.apache.camel.component.amqp.AMQPComponent" scope="singleton" lazy-init="default" autowire="no" depends-on="jmsCache" autowire-candidate="default">
+		<property name="connectionFactory" ref="jmsCache"/>
+	</bean>
+	<bean id="jmsCache" name="jmsCache" class="org.springframework.jms.connection.CachingConnectionFactory" scope="singleton" lazy-init="default" autowire="no" depends-on="amqpprocessor" autowire-candidate="default">
+		<property name="targetConnectionFactory" ref="amqpprocessor"/>
+		<property name="sessionCacheSize" value="50"/>
+	</bean>
+	<bean id="amqpprocessor" name="amqpprocessor" class="com.rabbitmq.jms.admin.RMQConnectionFactory" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="username" value="guest"/>
+		<property name="password" value="guest"/>
+		<property name="virtualHost" value="/"/>
+		<property name="host" value="localhost"/>
+		<property name="port" value="5671"/>
+		<property name="ssl" value="true"/>
+
+		<!--    <property name = "uris">-->
+		<!--      <list>-->
+		<!--        <value>amqp://localhost:5672</value>-->
+		<!--        <value>amqp://localhost:5673</value>-->
+		<!--        <value>amqp://localhost:5674</value>-->
+		<!--      </list>-->
+		<!--      			<list>-->
+		<!--      				<value>amqp://10.20.4.7:5672</value>-->
+		<!--      				<value>amqp://10.20.8.15:5672</value>-->
+		<!--      				<value>amqp://10.20.8.9:5672</value>-->
+		<!--      			</list>-->
+		<!--    </property>-->
+	</bean>
+	<bean id="useSslProtocolInvoke" name="useSslProtocolInvoke" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" scope="singleton" lazy-init="default" autowire="no" autowire-candidate="default">
+		<property name="targetObject" ref="amqpprocessor"/>
+		<property name="targetMethod" value="useSslProtocol"/>
+		<property name="arguments" ref="sslContextInst"/>
+	</bean>
+
+	<camelContext id="camelId" xmlns="http://camel.apache.org/schema/spring">
+		<route>
+			<from uri="file:InCamel"/>
+			<to uri="amqp:queue:TestQueue"/>
+		</route>
+		<route>
+			<from uri="amqp:queue:InCamel"/>
+			<to uri="amqp:queue:TestQueue"/>
+		</route>
+		<route>
+			<from uri="amqp:queue:TestQueue"/>
+			<to uri="amqp:queue:OutCamel"/>
+			<to uri="file:OutCamel"/>
+
+		</route>
+		<!--      <route>-->
+		<!--          <from uri="file:InCamel"/>-->
+		<!--          <to uri="rabbitmq:TestQueue/queueargs=arg.queue.x-queue-type=quorum?addresses=10.20.4.7:5672,10.20.8.15:5672,10.20.8.9:5672"/>-->
+		<!--      </route>-->
+		<!--    <route>-->
+		<!--      <from uri="rabbitmq:TestQueue/queueargs=arg.queue.x-queue-type=quorum?addresses=10.20.4.7:5672,10.20.8.15:5672,10.20.8.9:5672"/>-->
+		<!--      <to uri="rabbitmq:OutCamel/queueargs=arg.queue.x-queue-type=quorum?addresses=10.20.4.7:5672,10.20.8.15:5672,10.20.8.9:5672"/>-->
+		<!--        <to uri="file:OutCamel"/>-->
+		<!--    </route>-->
+	</camelContext>
+</beans>
